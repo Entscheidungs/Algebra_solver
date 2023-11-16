@@ -1,0 +1,91 @@
+package main
+
+import "fmt"
+
+func find_gcd(x, y int) int {
+
+	if x < y {
+		x, y = y, x
+	}
+	remainder := 1
+	for {
+		remainder = x % y
+		if remainder == 0 {
+			return y
+		}
+		x = y
+		y = remainder
+	}
+}
+func solve_with_inverse(a, b, c int) int {
+	if gcd := find_gcd(a, c); b%gcd == 0 {
+
+		a /= gcd
+		b /= gcd
+		c /= gcd
+		first_a := a
+		i := 1
+		for {
+			if (a - c*(a/c)) != 1 {
+				i++
+				a += first_a
+			} else {
+				r := b * i
+				for {
+					if r-c > 0 {
+						r -= c
+					} else {
+						return r
+					}
+				}
+			}
+		}
+
+	}
+	return -1
+}
+func solve_system(system []int) int {
+	temp_congruence := make([]int, 0, 3)
+
+	result := 0
+	modules_product := 1
+	modules := make([]int, 0, 10)
+	for idx, val := range system {
+		if (idx+1)%3 == 0 {
+			modules_product *= (val / find_gcd(system[idx-2], system[idx]))
+			modules = append(modules, (val / find_gcd(system[idx-2], system[idx])))
+		}
+	}
+
+	r := make([]int, 0, 10)
+	for _, val := range modules {
+
+		r = append(r, modules_product/val)
+	}
+	fmt.Println("r", r)
+	i := 0
+	for idx, val := range system {
+		temp_congruence = append(temp_congruence, val)
+		if (idx+1)%3 == 0 {
+
+			//fmt.Println("Initial ", temp_congruence)
+			temp := solve_with_inverse(temp_congruence[0], temp_congruence[1], temp_congruence[2])
+			new_congruence := []int{1, temp, temp_congruence[2] / find_gcd(temp_congruence[0], temp_congruence[2])}
+			//fmt.Println("Simplified ", new_congruence)
+			//fmt.Println("Final", r[i], "x = ", new_congruence[1], " mod ", new_congruence[2])
+			result += solve_with_inverse(r[i], new_congruence[1], new_congruence[2]) * r[i]
+
+			i++
+			temp_congruence = temp_congruence[:0]
+		}
+	}
+	for result-modules_product > 0 {
+		result -= modules_product
+	}
+	return result
+}
+func main() {
+
+	//system := []int{12, 9, 23, 5, 10, 7, 2, 28, 8}
+	//print("Solution: ", solve_system(system), "\n")
+}
